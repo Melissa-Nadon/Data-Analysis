@@ -93,8 +93,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-
 st.title("CSV Data Analysis 📊")
 
 def sort_columns(cols):
@@ -178,7 +176,7 @@ if csv_file:
 
                     df_resampled.columns = ['_'.join(col).strip() for col in df_resampled.columns.values]
 
-                    st.write(f"**results {period} period:**")
+                    st.write(f"**Results for {period} period:**")
                     styled_df = df_resampled.style.format("{:.2f}").set_table_styles(
                         [{
                             'selector': 'thead th',
@@ -229,11 +227,11 @@ if csv_file:
                 st.write("Count and Data Analysis")
 
                 # Select columns for count analysis
-                select_all_count = st.checkbox("Select All  for Count data", key="select_all_count")
+                select_all_count = st.checkbox("Select All for Count data", key="select_all_count")
                 if select_all_count:
-                    selected_columns_for_count = st.multiselect("Select columns to count", numeric_columns, default=numeric_columns)
+                    selected_columns_for_count = st.multiselect("Select sensor to count", numeric_columns, default=numeric_columns)
                 else:
-                    selected_columns_for_count = st.multiselect("Select columns to count", numeric_columns)
+                    selected_columns_for_count = st.multiselect("Select sensor to count", numeric_columns)
 
                 if selected_columns_for_count:
                     # Sort columns
@@ -241,7 +239,9 @@ if csv_file:
 
                     count_data = df[selected_columns_for_count].count()
                     st.write("Count of non-NA/null values for each column:")
-                    st.write(count_data)
+                    count_data_df = count_data.reset_index()
+                    count_data_df.columns = ['Sensor No.', 'Count']
+                    st.write(count_data_df)
 
                 # Select columns for resample analysis
                 select_all_resample = st.checkbox("Select All for Data Analysis", key="select_all_resample")
@@ -274,7 +274,7 @@ if csv_file:
 
                     csv_resample = df_resampled_for_resample.to_csv(index=True)
                     st.download_button(
-                        label="Download  Data as CSV",
+                        label="Download Data as CSV",
                         data=csv_resample,
                         file_name='data.csv',
                         mime='text/csv',
@@ -283,7 +283,7 @@ if csv_file:
                     # Select columns for graph in tab 2
                     columns_to_plot_tab2 = st.multiselect("Select sensor to plot", df_resampled_for_resample.columns)
                     if columns_to_plot_tab2:
-                        st.write(f"**Combined graph with linear regression for selected  {resample_period} period:**")
+                        st.write(f"**Combined graph with linear regression for selected {resample_period} period:**")
                         fig = go.Figure()
                         for column_to_plot in columns_to_plot_tab2:
                             fig.add_trace(go.Scatter(x=df_resampled_for_resample.index, y=df_resampled_for_resample[column_to_plot], mode='lines+markers', name=column_to_plot))
