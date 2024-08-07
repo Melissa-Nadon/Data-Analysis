@@ -134,7 +134,7 @@ if csv_file:
         if df.empty:
             st.error("The DataFrame is empty after processing the 'DateTime' column.")
         else:
-            tabs = st.tabs(["Data Analysis", "Count and Resample Analysis", "Period Analysis"])
+            tabs = st.tabs(["Data Analysis", "Count Data", "Summary Analysis"])
 
             with tabs[0]:
                 show_data = st.checkbox("Show uploaded data")
@@ -148,7 +148,7 @@ if csv_file:
                 # Select columns for calculations
                 numeric_columns = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
                 
-                select_all = st.checkbox("Select All Columns", key="select_all_data_analysis")
+                select_all = st.checkbox("Select All", key="select_all_data_analysis")
                 if select_all:
                     selected_columns = st.multiselect("Select columns to calculate", numeric_columns, default=numeric_columns)
                 else:
@@ -178,7 +178,7 @@ if csv_file:
 
                     df_resampled.columns = ['_'.join(col).strip() for col in df_resampled.columns.values]
 
-                    st.write(f"**Calculations for selected columns over {period} period:**")
+                    st.write(f"**results {period} period:**")
                     styled_df = df_resampled.style.format("{:.2f}").set_table_styles(
                         [{
                             'selector': 'thead th',
@@ -219,17 +219,17 @@ if csv_file:
 
                     csv = df_resampled.to_csv(index=True)
                     st.download_button(
-                        label="Download Resampled Data as CSV",
+                        label="Download Data as CSV",
                         data=csv,
                         file_name='resampled_data.csv',
                         mime='text/csv',
                     )
 
             with tabs[1]:
-                st.write("Count and Resample Analysis")
+                st.write("Count and Data Analysis")
 
                 # Select columns for count analysis
-                select_all_count = st.checkbox("Select All Columns for Count", key="select_all_count")
+                select_all_count = st.checkbox("Select All  for Count data", key="select_all_count")
                 if select_all_count:
                     selected_columns_for_count = st.multiselect("Select columns to count", numeric_columns, default=numeric_columns)
                 else:
@@ -244,17 +244,17 @@ if csv_file:
                     st.write(count_data)
 
                 # Select columns for resample analysis
-                select_all_resample = st.checkbox("Select All Columns for Resample", key="select_all_resample")
+                select_all_resample = st.checkbox("Select All for Data Analysis", key="select_all_resample")
                 if select_all_resample:
-                    selected_columns_for_resample = st.multiselect("Select columns to resample", numeric_columns, default=numeric_columns)
+                    selected_columns_for_resample = st.multiselect("Select sensor", numeric_columns, default=numeric_columns)
                 else:
-                    selected_columns_for_resample = st.multiselect("Select columns to resample", numeric_columns)
+                    selected_columns_for_resample = st.multiselect("Select sensor", numeric_columns)
                 
                 if selected_columns_for_resample:
                     # Sort columns
                     selected_columns_for_resample = sort_columns(selected_columns_for_resample)
 
-                    resample_period = st.selectbox("Select period for resample", ['hourly', 'daily', 'weekly', 'monthly'])
+                    resample_period = st.selectbox("Select period", ['hourly', 'daily', 'weekly', 'monthly'])
 
                     # Resample data based on the selected period
                     if resample_period == 'hourly':
@@ -269,21 +269,21 @@ if csv_file:
                     # Handle NaN values by filling them with zeros
                     df_resampled_for_resample.fillna(0, inplace=True)
 
-                    st.write(f"**Resampled data for selected columns over {resample_period} period:**")
+                    st.write(f"** {resample_period} period:**")
                     st.write(df_resampled_for_resample)
 
                     csv_resample = df_resampled_for_resample.to_csv(index=True)
                     st.download_button(
-                        label="Download Resampled Data as CSV",
+                        label="Download  Data as CSV",
                         data=csv_resample,
-                        file_name='resampled_resample_data.csv',
+                        file_name='data.csv',
                         mime='text/csv',
                     )
 
                     # Select columns for graph in tab 2
-                    columns_to_plot_tab2 = st.multiselect("Select columns to plot", df_resampled_for_resample.columns)
+                    columns_to_plot_tab2 = st.multiselect("Select sensor to plot", df_resampled_for_resample.columns)
                     if columns_to_plot_tab2:
-                        st.write(f"**Combined graph with linear regression for selected columns over {resample_period} period in tab 2:**")
+                        st.write(f"**Combined graph with linear regression for selected  {resample_period} period:**")
                         fig = go.Figure()
                         for column_to_plot in columns_to_plot_tab2:
                             fig.add_trace(go.Scatter(x=df_resampled_for_resample.index, y=df_resampled_for_resample[column_to_plot], mode='lines+markers', name=column_to_plot))
@@ -297,16 +297,16 @@ if csv_file:
                             fig.add_trace(go.Scatter(x=df_resampled_for_resample.index, y=trend, mode='lines', name=f"{column_to_plot}_regression", line=dict(dash='dash')))
 
                         fig.update_layout(
-                            title=f"Selected Columns over {resample_period} period",
+                            title=f" {resample_period} period",
                             xaxis_title="DateTime",
                             yaxis_title="Value",
-                            legend_title="Columns"
+                            legend_title="Sensor"
                         )
 
                         st.plotly_chart(fig)
 
             with tabs[2]:
-                st.write("Period Analysis")
+                st.write("Summary")
 
                 # Select start and end date
                 start_date = st.date_input("Start Date", key="start_date")
@@ -315,11 +315,11 @@ if csv_file:
                 if start_date and end_date:
                     filtered_df = df.loc[start_date:end_date]
                     
-                    select_all_period = st.checkbox("Select All Columns for Period Analysis", key="select_all_period")
+                    select_all_period = st.checkbox("Select All ", key="select_all_period")
                     if select_all_period:
-                        selected_columns_for_period = st.multiselect("Select columns for period analysis", numeric_columns, default=numeric_columns, key="columns_for_period")
+                        selected_columns_for_period = st.multiselect("Select sensor for period analysis", numeric_columns, default=numeric_columns, key="columns_for_period")
                     else:
-                        selected_columns_for_period = st.multiselect("Select columns for period analysis", numeric_columns, key="columns_for_period")
+                        selected_columns_for_period = st.multiselect("Select sensor for period analysis", numeric_columns, key="columns_for_period")
 
                     if selected_columns_for_period:
                         # Sort columns
@@ -349,7 +349,7 @@ if csv_file:
                         )
 
                     # Breakdown Analysis
-                    breakdown_period = st.selectbox("Select breakdown period", ['hourly', 'daily', 'weekly', 'monthly'], key="breakdown_period")
+                    breakdown_period = st.selectbox("Select breakdown by", ['hourly', 'daily', 'weekly', 'monthly'], key="breakdown_period")
 
                     metrics_list = ['Average', 'Maximum', 'Minimum', 'Standard Deviation', 'Count']
                     selected_metrics = st.multiselect("Select metrics to display", metrics_list, default=metrics_list)
